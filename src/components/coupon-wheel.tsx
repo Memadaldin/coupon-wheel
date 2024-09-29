@@ -11,16 +11,6 @@ type WheelItem = {
   color: string;
 };
 
-const WHEEL_ITEMS: WheelItem[] = [
-  { label: "15% off", color: "#002c3c" },
-  { label: "10% Off", color: "#f59e0b" },
-  { label: "Free Shipping", color: "#005f80" },
-  { label: "5% off", color: "#c2410c" },
-  { label: "25% off", color: "#002c3c" },
-  { label: "Free Shipping", color: "#f59e0b" },
-  { label: "5% Off", color: "#005f80" },
-  { label: "20% Off", color: "#c2410c" },
-];
 
 const WHEEL_RADIUS = 180;
 const OUTER_CIRCLE_RADIUS = 196;
@@ -41,6 +31,7 @@ type CouponWheelProps = {
   spinDuration?: number;
   spinDelay?: number;
   indicatorPosition?: IndicatorPosition;
+  wheelItems: WheelItem[];
   onFinish?: (result: string) => void; // Optional callback when spin finishes
 };
 
@@ -56,6 +47,7 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
       spinDuration = 4000,
       spinDelay = 200,
       indicatorPosition = "12",
+      wheelItems,
       onFinish,
     },
     ref
@@ -110,11 +102,11 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
         result: null,
       }));
 
-      const segmentAngle = 360 / WHEEL_ITEMS.length;
+      const segmentAngle = 360 / wheelItems.length;
       let totalRotation: number;
 
       if (predeterminedWinner) {
-        const winnerIndex = WHEEL_ITEMS.findIndex(
+        const winnerIndex = wheelItems.findIndex(
           (item) => item.label === predeterminedWinner
         );
         if (winnerIndex === -1) {
@@ -140,7 +132,7 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
         totalRotation += randomOffset;
       } else {
         // Randomly select a winning segment
-        const randomIndex = Math.floor(Math.random() * WHEEL_ITEMS.length);
+        const randomIndex = Math.floor(Math.random() * wheelItems.length);
         const targetAngle = randomIndex * segmentAngle + segmentAngle / 2;
 
         const indicatorOffset = getIndicatorOffset();
@@ -210,7 +202,7 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
 
     const finishSpin = (totalRotation: number): void => {
       const winningIndex = determineWinningIndex(totalRotation);
-      const result = WHEEL_ITEMS[winningIndex]?.label ?? "";
+      const result = wheelItems[winningIndex]?.label ?? "";
 
       setWheelState({
         rotation: totalRotation,
@@ -224,13 +216,13 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
     };
 
     const determineWinningIndex = (totalRotation: number): number => {
-      const segmentAngle = 360 / WHEEL_ITEMS.length;
+      const segmentAngle = 360 / wheelItems.length;
       const normalizedRotation = ((totalRotation % 360) + 360) % 360; // Ensure positive angle
 
       const pointerAngle =
         (normalizedRotation - getIndicatorOffset() + 360) % 360;
       const winningIndex =
-        Math.floor((360 - pointerAngle) / segmentAngle) % WHEEL_ITEMS.length;
+        Math.floor((360 - pointerAngle) / segmentAngle) % wheelItems.length;
       return winningIndex;
     };
     // Create wheel segment with labels aligned along the arc
@@ -238,8 +230,8 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
       item: WheelItem,
       index: number
     ): JSX.Element => {
-      const startAngle = index * (360 / WHEEL_ITEMS.length);
-      const endAngle = (index + 1) * (360 / WHEEL_ITEMS.length);
+      const startAngle = index * (360 / wheelItems.length);
+      const endAngle = (index + 1) * (360 / wheelItems.length);
       const largeArcFlag = endAngle - startAngle <= 180 ? 0 : 1;
 
       // Define the path ID for the arc
@@ -414,7 +406,7 @@ export const CouponWheel = forwardRef<CouponWheelRef, CouponWheelProps>(
                   transition: "none",
                 }}
               >
-                {WHEEL_ITEMS.map(createWheelSegment)}
+                {wheelItems.map(createWheelSegment)}
               </g>
               {createBorderLights()}
               {renderIndicator()}
